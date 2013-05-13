@@ -1,0 +1,30 @@
+--- xmobar-0.15-old/src/Plugins/PipeReader.hs	2012-09-18 13:09:07.000000000 +0800
++++ xmobar-0.15/src/Plugins/PipeReader.hs	2012-09-18 13:08:25.000000000 +0800
+@@ -16,6 +16,9 @@
+ 
+ import System.IO
+ import Plugins
++import System.Posix.Files
++import Control.Concurrent(threadDelay)
++import Control.Exception
+ 
+ data PipeReader = PipeReader String String
+     deriving (Read, Show)
+@@ -23,6 +25,17 @@
+ instance Exec PipeReader where
+     alias (PipeReader _ a)    = a
+     start (PipeReader p _) cb = do
++        checkPipeLoop p
+         h <- openFile p ReadWriteMode
+         forever (hGetLineSafe h >>= cb)
+         where forever a = a >> forever a
++                
++checkPipeLoop :: FilePath -> IO ()
++checkPipeLoop file = do
++    handle (\(SomeException _) -> waitForPipe) $ do
++    status <- getFileStatus file
++    if isNamedPipe status
++      then return ()
++      else waitForPipe
++    where waitForPipe = threadDelay 100000 >> checkPipeLoop file
++

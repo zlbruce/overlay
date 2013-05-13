@@ -1,0 +1,21 @@
+diff -ur wireshark-1.8.6/epan/packet.c wireshark-1.8.6-fix-host/epan/packet.c
+--- wireshark-1.8.6/epan/packet.c	2013-01-26 03:41:28.000000000 +0800
++++ wireshark-1.8.6-fix-host/epan/packet.c	2013-05-13 11:14:14.404263758 +0800
+@@ -134,7 +134,7 @@
+ 	 * Reinitialize resolution information. We do initialization here in
+ 	 * case we need to resolve between captures.
+ 	 */
+-	host_name_lookup_cleanup();
++	//host_name_lookup_cleanup();
+ 	host_name_lookup_init();
+ 
+ 	/* Initialize the table of conversations. */
+@@ -181,7 +181,7 @@
+ 	 * Reinitialize resolution information. We do initialization here in
+ 	 * case we need to resolve between captures.
+ 	 */
+-	host_name_lookup_cleanup();
++	//host_name_lookup_cleanup();
+ 	host_name_lookup_init();
+ }
+ 

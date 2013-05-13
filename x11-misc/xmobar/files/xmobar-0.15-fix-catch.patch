@@ -1,0 +1,11 @@
+--- xmobar-0.15-old/src/XUtil.hsc       2012-11-26 10:14:36.000000000 +0800
++++ xmobar-0.15/src/XUtil.hsc   2012-11-26 10:14:50.000000000 +0800
+@@ -31,6 +31,7 @@
+     , DynPixel(..)
+     ) where
+ 
++import Control.Exception
+ import Control.Concurrent
+ import Control.Monad.Trans
+ import Data.IORef
+
