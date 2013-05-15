@@ -1,7 +1,7 @@
-diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_resolv.c
---- wireshark-1.8.6/epan/addr_resolv.c	2012-11-27 06:41:22.000000000 +0800
-+++ wireshark-1.8.6-fix-host/epan/addr_resolv.c	2013-05-15 14:13:36.965124977 +0800
-@@ -453,14 +453,14 @@
+diff -ur wireshark-1.10.0rc1/epan/addr_resolv.c wireshark-1.10.0rc1-zl/epan/addr_resolv.c
+--- wireshark-1.10.0rc1/epan/addr_resolv.c	2013-04-23 02:05:19.000000000 +0800
++++ wireshark-1.10.0rc1-zl/epan/addr_resolv.c	2013-05-15 14:39:46.398167005 +0800
+@@ -455,14 +455,14 @@
    tp = proto_table[hash_idx];
  
    if( tp == NULL ) {
@@ -18,7 +18,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
          tp = tp->next;
          break;
        }
-@@ -637,14 +637,14 @@
+@@ -639,14 +639,14 @@
    tp = table[hash_idx];
  
    if( tp == NULL ) {
@@ -35,7 +35,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
          tp = tp->next;
          break;
        }
-@@ -754,7 +754,7 @@
+@@ -757,7 +757,7 @@
  static hashipv4_t *
  new_ipv4(const guint addr)
  {
@@ -44,7 +44,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
    tp->addr = addr;
    tp->next = NULL;
    tp->resolve = FALSE;
-@@ -855,7 +855,7 @@
+@@ -849,7 +849,7 @@
  static hashipv6_t *
  new_ipv6(const struct e_in6_addr *addr)
  {
@@ -53,7 +53,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
    tp->addr = *addr;
    tp->next = NULL;
    tp->resolve = FALSE;
-@@ -1310,7 +1310,7 @@
+@@ -1295,7 +1295,7 @@
  {
    hashmanuf_t *mtp;
  
@@ -62,7 +62,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
    memcpy(mtp->addr, addr, sizeof(mtp->addr));
    /*  The length of this name is limited (in the number of UTF-8 characters,
     *  not bytes) in make-manuf.  That doesn't mean a user can't put a longer
-@@ -1326,7 +1326,7 @@
+@@ -1311,7 +1311,7 @@
  {
    hashwka_t *wtp;
  
@@ -71,16 +71,16 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
    memcpy(wtp->addr, addr, sizeof(wtp->addr));
    g_strlcpy(wtp->name, name, MAXNAMELEN);
    wtp->next = NULL;
-@@ -1377,7 +1377,7 @@
+@@ -1362,7 +1362,7 @@
       well-known-address table, creating that table if necessary. */
    wka_tp = wka_table[mask];
    if (wka_tp == NULL)
--    wka_tp = wka_table[mask] = se_alloc0(sizeof *wka_table[mask]);
+-    wka_tp = wka_table[mask] = (hashwka_t *(*)[HASHETHSIZE])se_alloc0(sizeof *wka_table[mask]);
 +    wka_tp = wka_table[mask] = g_malloc0(sizeof *wka_table[mask]);
  
    hash_idx = hash_eth_wka(addr, mask);
  
-@@ -1641,7 +1640,7 @@
+@@ -1626,7 +1625,7 @@
  eth_hash_new_entry(const guint8 *addr, const gboolean resolve) {
    hashether_t *tp;
  
@@ -89,7 +89,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
    memcpy(tp->addr, addr, sizeof(tp->addr));
    tp->status = HASHETHER_STATUS_UNRESOLVED;
    g_strlcpy(tp->hexaddr, bytestring_to_str(addr, sizeof(tp->addr), ':'), sizeof(tp->hexaddr));
-@@ -1924,11 +1922,11 @@
+@@ -1909,11 +1907,11 @@
    tp = ipxnet_table[hash_idx];
  
    if( tp == NULL ) {
@@ -103,7 +103,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
          tp = tp->next;
          break;
        }
-@@ -1957,14 +1955,14 @@
+@@ -1942,14 +1940,14 @@
    tp = ipxnet_table[hash_idx];
  
    if( tp == NULL ) {
@@ -120,7 +120,7 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
          tp = tp->next;
          break;
        }
-@@ -2261,19 +2259,19 @@
+@@ -2272,19 +2270,19 @@
    hash_idx = HASH_IPV4_ADDRESS(subnet_addr);
  
    if(NULL == entry->subnet_addresses) {
@@ -143,57 +143,57 @@ diff -ur wireshark-1.8.6/epan/addr_resolv.c wireshark-1.8.6-fix-host/epan/addr_r
    }
  
    tp->next = NULL;
-@@ -2393,7 +2391,7 @@
+@@ -2465,7 +2463,7 @@
  #endif /*GNU_ADNS */
  
    if (!addrinfo_list) {
--    ai = se_alloc0(sizeof(struct addrinfo));
+-    ai = se_new0(struct addrinfo);
 +    ai = g_malloc0(sizeof(struct addrinfo));
      addrinfo_list = addrinfo_list_last = ai;
    }
  
-@@ -2727,15 +2725,15 @@
+@@ -2822,15 +2820,15 @@
    new_resolved_objects = TRUE;
  
    if (!addrinfo_list) {
--    ai = se_alloc0(sizeof(struct addrinfo));
+-    ai = se_new0(struct addrinfo);
 +    ai = g_malloc0(sizeof(struct addrinfo));
      addrinfo_list = addrinfo_list_last = ai;
    }
  
--  sa4 = se_alloc0(sizeof(struct sockaddr_in));
+-  sa4 = se_new0(struct sockaddr_in);
 +  sa4 = g_malloc0(sizeof(struct sockaddr_in));
    sa4->sin_family = AF_INET;
    sa4->sin_addr.s_addr = addr;
  
--  ai = se_alloc0(sizeof(struct addrinfo));
+-  ai = se_new0(struct addrinfo);
 +  ai = g_malloc0(sizeof(struct addrinfo));
    ai->ai_family = AF_INET;
    ai->ai_addrlen = sizeof(struct sockaddr_in);
    ai->ai_canonname = (char *) tp->name;
-@@ -2785,15 +2783,15 @@
+@@ -2880,15 +2878,15 @@
    new_resolved_objects = TRUE;
  
    if (!addrinfo_list) {
--    ai = se_alloc0(sizeof(struct addrinfo));
+-    ai = se_new0(struct addrinfo);
 +    ai = g_malloc0(sizeof(struct addrinfo));
      addrinfo_list = addrinfo_list_last = ai;
    }
  
--  sa6 = se_alloc0(sizeof(struct sockaddr_in6));
+-  sa6 = se_new0(struct sockaddr_in6);
 +  sa6 = g_malloc0(sizeof(struct sockaddr_in6));
    sa6->sin6_family = AF_INET;
    memcpy(sa6->sin6_addr.s6_addr, addrp, 16);
  
--  ai = se_alloc0(sizeof(struct addrinfo));
+-  ai = se_new0(struct addrinfo);
 +  ai = g_malloc0(sizeof(struct addrinfo));
    ai->ai_family = AF_INET6;
    ai->ai_addrlen = sizeof(struct sockaddr_in);
    ai->ai_canonname = (char *) tp->name;
-diff -ur wireshark-1.8.6/epan/packet.c wireshark-1.8.6-fix-host/epan/packet.c
---- wireshark-1.8.6/epan/packet.c	2013-01-26 03:41:28.000000000 +0800
-+++ wireshark-1.8.6-fix-host/epan/packet.c	2013-05-14 17:31:26.446415410 +0800
-@@ -134,8 +134,8 @@
+diff -ur wireshark-1.10.0rc1/epan/packet.c wireshark-1.10.0rc1-zl/epan/packet.c
+--- wireshark-1.10.0rc1/epan/packet.c	2013-04-23 02:05:19.000000000 +0800
++++ wireshark-1.10.0rc1-zl/epan/packet.c	2013-05-15 14:33:04.096156232 +0800
+@@ -144,8 +144,8 @@
  	 * Reinitialize resolution information. We do initialization here in
  	 * case we need to resolve between captures.
  	 */
@@ -204,7 +204,7 @@ diff -ur wireshark-1.8.6/epan/packet.c wireshark-1.8.6-fix-host/epan/packet.c
  
  	/* Initialize the table of conversations. */
  	epan_conversation_init();
-@@ -181,8 +181,8 @@
+@@ -193,8 +193,8 @@
  	 * Reinitialize resolution information. We do initialization here in
  	 * case we need to resolve between captures.
  	 */

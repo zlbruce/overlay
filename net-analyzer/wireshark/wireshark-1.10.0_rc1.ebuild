@@ -82,7 +82,7 @@ pkg_setup() {
 src_prepare() {
 	epatch \
 		"${FILESDIR}"/${PN}-1.6.13-ldflags.patch \
-		"${FILESDIR}"/${PN}-1.8.6-manually_resolve_address.patch \
+		"${FILESDIR}"/${PN}-1.10.0-manually_resolve_address.patch \
 		"${FILESDIR}"/${PN}-1.10.0-pkg-config.patch
 
 	sed -i \
