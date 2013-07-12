@@ -1,10 +1,9 @@
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/net-analyzer/wireshark/wireshark-1.10.0_rc1.ebuild,v 1.8 2013/05/08 13:30:13 jer Exp $
+# $Header: /var/cvsroot/gentoo-x86/net-analyzer/wireshark/wireshark-1.10.0-r1.ebuild,v 1.4 2013/06/13 14:00:05 jer Exp $
 
 EAPI=5
-PYTHON_COMPAT=( python2_5 python2_6 python2_7 )
-inherit autotools eutils fcaps flag-o-matic python-single-r1 user
+inherit autotools eutils fcaps flag-o-matic user
 
 [[ -n ${PV#*_rc} && ${PV#*_rc} != ${PV} ]] && MY_P=${PN}-${PV/_} || MY_P=${P}
 DESCRIPTION="A network protocol analyzer formerly known as ethereal"
@@ -15,11 +14,12 @@ LICENSE="GPL-2"
 SLOT="0/${PV}"
 KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd"
 IUSE="
-	adns +caps crypt doc doc-pdf geoip gtk ipv6 kerberos libadns lua
-	+netlink +pcap portaudio profile python selinux smi ssl zlib
+	adns +caps crypt doc doc-pdf geoip +gtk ipv6 kerberos libadns lua
+	+netlink +pcap portaudio profile qt4 selinux smi ssl zlib
 "
 REQUIRED_USE="
 	ssl? ( crypt )
+	gtk? ( !qt4 )
 "
 
 RDEPEND="
@@ -40,7 +40,11 @@ RDEPEND="
 	lua? ( >=dev-lang/lua-5.1 )
 	pcap? ( net-libs/libpcap[-netlink] )
 	portaudio? ( media-libs/portaudio )
-	python? ( ${PYTHON_DEPS} )
+	qt4? (
+		dev-qt/qtcore:4
+		dev-qt/qtgui:4
+		x11-misc/xdg-utils
+		)
 	selinux? ( sec-policy/selinux-wireshark )
 	smi? ( net-libs/libsmi )
 	ssl? ( net-libs/gnutls )
@@ -58,7 +62,6 @@ DEPEND="
 		www-client/lynx
 	)
 	>=virtual/perl-Pod-Simple-3.170.0
-	sys-apps/sed
 	sys-devel/bison
 	sys-devel/flex
 	virtual/perl-Getopt-Long
@@ -69,26 +72,14 @@ DEPEND="
 S=${WORKDIR}/${MY_P}
 
 pkg_setup() {
-	if ! use gtk; then
-		ewarn "USE=-gtk disables gtk-based gui called wireshark."
-		ewarn "Only command line utils will be built available"
-	fi
-
-	if use python; then
-		python-single-r1_pkg_setup
-	fi
+	# Add group for users allowed to sniff.
+	enewgroup wireshark
 }
 
 src_prepare() {
 	epatch \
 		"${FILESDIR}"/${PN}-1.6.13-ldflags.patch \
 		"${FILESDIR}"/${PN}-1.10.0-manually_resolve_address.patch \
-		"${FILESDIR}"/${PN}-1.10.0-pkg-config.patch
-
-	sed -i \
-		-e '/^Icon/s|.png||g' \
-		-e '/^MimeType.*[[:alnum:]]$/s|$|;|g' \
-		${PN}.desktop || die
 
 	eautoreconf
 }
@@ -130,6 +121,13 @@ src_configure() {
 		esac
 	fi
 
+	# Enable wireshark binary with any supported GUI toolkit (bug #473188)
+	if use gtk || use qt4 ; then
+		myconf+=( "--enable-wireshark" )
+	else
+		myconf+=( "--disable-wireshark" )
+	fi
+
 	# Hack around inability to disable doxygen/fop doc generation
 	use doc || export ac_cv_prog_HAVE_DOXYGEN=false
 	use doc-pdf || export ac_cv_prog_HAVE_FOP=false
@@ -138,19 +136,18 @@ src_configure() {
 	econf \
 		$(use pcap && use_enable !caps setuid-install) \
 		$(use pcap && use_enable caps setcap-install) \
-		$(use_enable gtk wireshark) \
 		$(use_enable ipv6) \
 		$(use_enable profile profile-build) \
-		$(use_with netlink libnl) \
-		$(use_with crypt gcrypt) \
 		$(use_with caps libcap) \
+		$(use_with crypt gcrypt) \
 		$(use_with geoip) \
 		$(use_with kerberos krb5) \
 		$(use_with lua) \
+		$(use_with netlink libnl) \
 		$(use_with pcap dumpcap-group wireshark) \
 		$(use_with pcap) \
 		$(use_with portaudio) \
-		$(use_with python) \
+		$(use_with qt4 qt) \
 		$(use_with smi libsmi) \
 		$(use_with ssl gnutls) \
 		$(use_with zlib) \
@@ -190,7 +187,7 @@ src_install() {
 	insinto /usr/include/wiretap
 	doins wiretap/wtap.h
 
-	if use gtk; then
+	if use gtk || use qt4; then
 		for c in hi lo; do
 			for d in 16 32 48; do
 				insinto /usr/share/icons/${c}color/${d}x${d}/apps
@@ -201,10 +198,6 @@ src_install() {
 	fi
 
 	use pcap && chmod o-x "${ED}"/usr/bin/dumpcap #357237
-
-	if use python; then
-		python_optimize "${ED}"/usr/lib*/wireshark/python
-	fi
 }
 
 pkg_postinst() {
