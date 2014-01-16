@@ -1,0 +1,13 @@
+diff -Nur old/vmmon-only/linux/vmmonInt.h new/vmmon-only/linux/vmmonInt.h
+--- old/vmmon-only/linux/vmmonInt.h	2013-10-19 03:11:54.000000000 +0800
++++ new/vmmon-only/linux/vmmonInt.h	2014-01-16 10:12:28.811413672 +0800
+@@ -27,6 +27,9 @@
+ /*
+  * Hide all kernel compatibility stuff in these macros and functions.
+  */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 29)
++#define VMW_HAVE_SMP_CALL_3ARG
++#endif
+ 
+ #ifdef VMW_HAVE_SMP_CALL_3ARG
+ #define compat_smp_call_function(fn, info, wait) smp_call_function(fn, info, wait)
